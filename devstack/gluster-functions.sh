@@ -3,20 +3,12 @@
 # devstack/gluster-functions.sh
 # Functions to control the installation and configuration of the **GlusterFS** storage
 
-# Installs 3.x version of glusterfs
 # Triggered from devstack/plugin.sh as part of devstack "pre-install"
 function install_glusterfs {
     if [[ ${DISTRO} =~ rhel7 ]] && [[ ! -f /etc/yum.repos.d/glusterfs-epel.repo ]]; then
         sudo wget $GLUSTERFS_CENTOS_REPO -O /etc/yum.repos.d/glusterfs-epel.repo
     elif is_ubuntu; then
-        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 3FE869A9
-        if [ "$1" == "3.6" ]; then
-            echo "deb http://ppa.launchpad.net/gluster/glusterfs-3.6/ubuntu $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/glusterfs-3_6.list
-            echo "deb-src http://ppa.launchpad.net/gluster/glusterfs-3.6/ubuntu $(lsb_release -sc) main" | sudo tee --append /etc/apt/sources.list.d/glusterfs-3_6.list
-        elif [ "$1" == "3.7" ]; then
-            echo "deb http://ppa.launchpad.net/gluster/glusterfs-3.7/ubuntu $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/glusterfs-3_7.list
-            echo "deb-src http://ppa.launchpad.net/gluster/glusterfs-3.7/ubuntu $(lsb_release -sc) main" | sudo tee --append /etc/apt/sources.list.d/glusterfs-3_7.list
-        fi
+        sudo add-apt-repository ppa:gluster/glusterfs-6 -y
         NO_UPDATE_REPOS=False
         REPOS_UPDATED=False
     fi
