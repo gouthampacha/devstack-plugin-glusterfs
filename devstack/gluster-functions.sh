@@ -74,6 +74,34 @@ function _delete_gluster_shares {
     done
 }
 
+function clean_manila_backend_glusterfs {
+    case "$GLUSTERFS_MANILA_DRIVER_TYPE" in
+    glusterfs|glusterfs-nfs)
+        _clean_manila_glusterfs_nfs
+        ;;
+    *)
+        echo "no clean hook for GLUSTERFS_MANILA_DRIVER_TYPE=${GLUSTERFS_MANILA_DRIVER_TYPE}"
+        ;;
+    esac
+}
+
+function _clean_manila_glusterfs_nfs {
+    _clean_thin_lv_gluster_vol manila-glusterfs-vol
+
+    clean_lvm_volume_group $GLUSTERFS_VG_NAME
+}
+
+function _clean_thin_lv_gluster_vol {
+    local vol_name=$1
+
+    sudo gluster --mode=script volume stop $vol_name
+    sudo gluster --mode=script volume delete $vol_name
+
+    sudo umount -f $MANILA_STATE_PATH/export/$vol_name
+
+    # lv will remove in clean_lvm_volume_group
+}
+
 # Cleanup GlusterFS
 # Triggered from devstack/plugin.sh as part of devstack "clean"
 function cleanup_glusterfs {
@@ -99,6 +127,11 @@ function cleanup_glusterfs {
         _delete_gluster_shares $NOVA_GLUSTERFS_SHARE
     fi
 
+    # Cleaning up Manila GlusterFS share
+    if [ "$CONFIGURE_GLUSTERFS_MANILA" = "True" ]; then
+        clean_manila_backend_glusterfs
+    fi
+
     if [[ -e ${GLUSTERFS_DISK_IMAGE} ]]; then
         sudo rm -f ${GLUSTERFS_DISK_IMAGE}
     fi
@@ -109,6 +142,9 @@ function cleanup_glusterfs {
 
     if egrep -q ${GLUSTERFS_DATA_DIR} /proc/mounts; then
         sudo umount ${GLUSTERFS_DATA_DIR}
+
+        # Delete all glusterfs information
+        sudo rm -rf /var/lib/glusterd
     fi
 
     sudo rm -rf ${GLUSTERFS_DATA_DIR}
