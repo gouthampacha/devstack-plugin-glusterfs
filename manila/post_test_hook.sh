@@ -28,6 +28,19 @@ for env_var in ${DEVSTACK_LOCAL_CONFIG// / }; do
     export $env_var;
 done
 
+# What backend configuration: singlebackend or multibackend
+MANILA_BACKEND_TYPE=$1
+MANILA_BACKEND_TYPE=${MANILA_BACKEND_TYPE:-singlebackend}
+
+# What driver to test: glusterfs, glusterfs-nfs, glusterfs-heketi,
+# glusterfs-nfs-heketi, glusterfs-native
+GLUSTERFS_MANILA_DRIVER_TYPE=$2
+GLUSTERFS_MANILA_DRIVER_TYPE=${GLUSTERFS_MANILA_DRIVER_TYPE:-glusterfs-nfs}
+
+# What test to run: api or scenario
+MANILA_TEST_TYPE=$3
+MANILA_TEST_TYPE=${MANILA_TEST_TYPE:-api}
+
 if [[ "$GLUSTERFS_MANILA_DRIVER_TYPE" == "glusterfs-native" ]]; then
     local BACKEND_NAME="GLUSTERNATIVE"
     iniset $TEMPEST_CONFIG share enable_protocols glusterfs
@@ -37,6 +50,7 @@ if [[ "$GLUSTERFS_MANILA_DRIVER_TYPE" == "glusterfs-native" ]]; then
     iniset $TEMPEST_CONFIG share enable_ip_rules_for_protocols
     iniset $TEMPEST_CONFIG share enable_cert_rules_for_protocols glusterfs
     iniset $TEMPEST_CONFIG share capability_snapshot_support True
+    iniset $TEMPEST_CONFIG share capability_create_share_from_snapshot_support true
     # ro access_level is not supported by the driver.
     iniset $TEMPEST_CONFIG share enable_ro_access_level_for_protocols
 else
@@ -100,8 +114,15 @@ iniset $TEMPEST_CONFIG share run_consistency_group_tests $RUN_MANILA_CG_TESTS
 set +o errexit
 cd $BASE/new/tempest
 
-export MANILA_TEMPEST_CONCURRENCY=${MANILA_TEMPEST_CONCURRENCY:-12}
-export MANILA_TESTS=${MANILA_TESTS:-'manila_tempest_tests.tests.api'}
+if [[ $MANILA_TEST_TYPE == 'api' ]]; then
+    export MANILA_TESTS='manila_tempest_tests.tests.api'
+    MANILA_TEMPEST_CONCURRENCY=12
+elif [[ $MANILA_TEST_TYPE == 'scenario' ]]; then
+    export MANILA_TESTS='manila_tempest_tests.tests.scenario'
+else
+    export MANILA_TESTS='manila_tempest_tests.tests'
+fi
+export MANILA_TEMPEST_CONCURRENCY=${MANILA_TEMPEST_CONCURRENCY:-8}
 
 # check if tempest plugin was installed correctly
 echo 'import pkg_resources; print list(pkg_resources.iter_entry_points("tempest.test_plugins"))' | python
@@ -127,7 +148,8 @@ iniset $TEMPEST_CONFIG validation ssh_timeout $BUILD_TIMEOUT
 iniset $TEMPEST_CONFIG validation network_for_ssh ${PRIVATE_NETWORK_NAME:-"private"}
 
 echo "Running tempest manila test suites"
-sudo -H -u $USER tox -eall -- $MANILA_TESTS --concurrency=$MANILA_TEMPEST_CONCURRENCY
+sudo -H -u $USER tempest list-plugins
+sudo -H -u $USER tempest run -r $MANILA_TESTS --concurrency=$MANILA_TEMPEST_CONCURRENCY
 
 _retval=$?
 

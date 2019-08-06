@@ -267,7 +267,7 @@ function _create_thin_lv_gluster_vol {
     sudo gluster --mode=script vol create $vol_name $(hostname):$MANILA_STATE_PATH/export/$vol_name/brick
 
     # Start gluster volume
-    sudo gluster --mode=script volume start $vol_name
+    test_with_retry "sudo gluster --mode=script volume start $vol_name force" "Start gluster volume failed"
 }
 
 # Configure manila.conf to use glusterfs.py driver
