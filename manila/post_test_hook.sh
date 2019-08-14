@@ -57,6 +57,8 @@ else
     case "$GLUSTERFS_MANILA_DRIVER_TYPE" in
     glusterfs|glusterfs-nfs)
         local BACKEND_NAME="GLUSTERFS"
+        RUN_MANILA_EXTEND_TESTS=True
+        RUN_MANILA_SHRINK_TESTS=True
         ;;
     glusterfs-heketi|glusterfs-nfs-heketi)
         local BACKEND_NAME="GLUSTERFSHEKETI"
