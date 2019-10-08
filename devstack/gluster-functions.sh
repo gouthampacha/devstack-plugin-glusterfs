@@ -326,10 +326,8 @@ function _configure_glusterfs_server_in_local_host_for_tls_support {
 
 # Setup and configure glusterfs_native.py as the backend share driver for Manila
 function _configure_manila_glusterfs_native {
-
-
     # Create necessary files to allow GlusterFS volumes to use TLS features
-    local common_name=server.com
+    local common_name=glusterfs-server1
     _configure_glusterfs_server_in_local_host_for_tls_support $common_name
 
     # Create four GlusterFS volumes to be used as shares.
