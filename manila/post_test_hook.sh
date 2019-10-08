@@ -53,6 +53,7 @@ if [[ "$GLUSTERFS_MANILA_DRIVER_TYPE" == "glusterfs-native" ]]; then
     iniset $TEMPEST_CONFIG share capability_create_share_from_snapshot_support true
     # ro access_level is not supported by the driver.
     iniset $TEMPEST_CONFIG share enable_ro_access_level_for_protocols
+    RUN_MANILA_SNAPSHOT_TESTS=True
 else
     case "$GLUSTERFS_MANILA_DRIVER_TYPE" in
     glusterfs|glusterfs-nfs)
