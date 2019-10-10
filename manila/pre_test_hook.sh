@@ -25,6 +25,10 @@ echo "MANILA_USE_DOWNGRADE_MIGRATIONS=True" >> $localconf
 echo "MANILA_SERVICE_IMAGE_ENABLED=False" >> $localconf
 echo "MANILA_MULTI_BACKEND=False" >> $localconf
 
+source $BASE/new/devstack/functions
+
+deprecated "devstack-plugin-glusterfs pre_test_hook and post_test_hook scripts are DEPRECATED. Please use alternate tools to configure devstack's local.conf file"
+
 # Import env vars defined in CI job.
 for env_var in ${DEVSTACK_LOCAL_CONFIG// / }; do
     export $env_var;

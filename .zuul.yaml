@@ -1,0 +1,11 @@
+- project:
+    check:
+      jobs:
+        - openstack-tox-bashate
+        - manila-tempest-plugin-glusterfs-native:
+            voting: false
+        - manila-tempest-plugin-glusterfs-nfs:
+            voting: false
+    gate:
+      jobs:
+        - openstack-tox-bashate
