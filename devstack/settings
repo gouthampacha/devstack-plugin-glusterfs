@@ -3,6 +3,9 @@
 # Defaults
 # --------
 
+define_plugin glusterfs
+# line below lets scripts place manila plugin before glusterfs in local.conf
+plugin_requires glusterfs manila
 
 ######### Plugin Specific #########
 
