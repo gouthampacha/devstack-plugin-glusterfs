@@ -8,7 +8,7 @@ function install_glusterfs {
     if [[ ${DISTRO} =~ rhel7 ]] && [[ ! -f /etc/yum.repos.d/glusterfs-epel.repo ]]; then
         sudo wget $GLUSTERFS_CENTOS_REPO -O /etc/yum.repos.d/glusterfs-epel.repo
     elif is_ubuntu; then
-        sudo add-apt-repository ppa:gluster/glusterfs-6 -y
+        sudo add-apt-repository ppa:gluster/glusterfs-7 -y
         NO_UPDATE_REPOS=False
         REPOS_UPDATED=False
     fi
@@ -16,31 +16,21 @@ function install_glusterfs {
     install_package glusterfs-server
     install_package xfsprogs
 
-    if is_fedora; then
-        stop_glusterfs
-        _start_glusterfs
-    fi
+    stop_glusterfs
+    _start_glusterfs
 
     _create_glusterfs_disk
 }
 
 # Start gluster service
 function _start_glusterfs {
-    if is_ubuntu; then
-        sudo service glusterfs-server start
-    else
-        sudo service glusterd start
-    fi
+    sudo systemctl start glusterd
 }
 
 # Stop running gluster service
 # Triggered from devstack/plugin.sh as part of devstack "unstack"
 function stop_glusterfs {
-    if is_ubuntu; then
-        sudo service glusterfs-server stop
-    else
-        sudo service glusterd stop
-    fi
+    sudo systemctl stop glusterd
 }
 
 # Clean Shares
